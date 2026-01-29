@@ -1,5 +1,6 @@
-username|password|name|surname|role
+username|password|surname|role
 sanja1|123a|sanja|pejic|manager
 sanja2|123aa|sanjaa|pejic|seller
 sanja3|123aaa|sanjaaa|pejic|customer
 kiki|123|kiki|bilac|customer
+heka1|123|Hektor|Pejic|customer
