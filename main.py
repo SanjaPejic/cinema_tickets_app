@@ -7,13 +7,14 @@ from models.user import User
 # print(f"User's full name is: {user_first.name} {user_first.surname}")
 # print(f"User's role is: {user_first.role}")
 
-data_file_path = "user_data.txt"
+user_file_path = "user_data.txt"
+film_file_path = "film_data.txt"
 
 
-def load_data() -> []:
+def load_user_data() -> []:
     data_matrix = []
     try:
-        with open(data_file_path, mode="r") as data_file:
+        with open(user_file_path, mode="r") as data_file:
             data_lines = data_file.readlines()
         data_lines.pop(0)
 
@@ -28,7 +29,7 @@ def load_data() -> []:
 
 
 def check_existing_user(username: str, password: str) -> User | None:
-    data_matrix = load_data()
+    data_matrix = load_user_data()
     for row in data_matrix:
         if username == row[0] and password == row[1]:
             try:
@@ -60,7 +61,7 @@ def register() -> User | None:
     unique = False
     while not unique:
         username = input("Create a username: ")
-        data_matrix = load_data()
+        data_matrix = load_user_data()
         unique = True
         for line in data_matrix:
             if line[0] == username:
@@ -86,7 +87,7 @@ def register() -> User | None:
     surname = input("Enter your surname: ")
 
     try:
-        with open(data_file_path, mode="a+") as data_file:
+        with open(user_file_path, mode="a+") as data_file:
             data_file.write(f"\n{username}|{password}|{name}|{surname}|{Role.CUSTOMER}")
             new_user = User(username, password, name, surname, Role.CUSTOMER)
             print("Assigned role: customer.")
@@ -97,6 +98,27 @@ def register() -> User | None:
         print(f"File not found, {e} ")
 
     return None
+
+
+def load_film_data() -> []:
+    film_matrix = []
+    try:
+        with open(film_file_path, mode="r") as data_file:
+            file_lines = data_file.readlines()
+        file_lines.pop(0)
+
+        for line in file_lines:
+            row = line.strip().split("|")
+            film_matrix.append(row)
+
+    except FileNotFoundError as e:
+        print(f"File not found: {e} ")
+    return film_matrix
+
+
+def print_all_films(film_matrix: []):
+    for film in film_matrix:
+        print(f"{film_matrix.index(film) + 1}. {film}")
 
 
 def display_auth_menu() -> User:
@@ -122,12 +144,16 @@ def display_auth_menu() -> User:
 def display_user_menu(user: User):
     print("---------------------------------------------------------------------------")
     print(f"Main Menu: {user.username}")
-    print("1. ")
+    print("1. See available movies")
     print("2. ")
     print("3. ")
     print("4. ")
     print("5. Exit")
     print("---------------------------------------------------------------------------")
+    choice = input("Choose 1, 2, or 3: ").strip()
+
+    if choice == "1":
+        print_all_films(load_film_data())
 
 
 if __name__ == '__main__':

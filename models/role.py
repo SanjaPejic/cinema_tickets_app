@@ -7,5 +7,4 @@ class Role(str, Enum):
     MANAGER = "manager"
 
     def __str__(self):
-        return self.value.lower()
-
+        return self.value
