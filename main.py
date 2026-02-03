@@ -117,8 +117,10 @@ def load_film_data() -> []:
 
 
 def print_all_films(film_matrix: []):
+    print("  | title | genre | duration_min | directors | main_cast | country | year | description")
     for film in film_matrix:
-        print(f"{film_matrix.index(film) + 1}. {film}")
+        print(f"{film_matrix.index(film) + 1}."
+              f"| {film[0]} | {film[1]} | {film[2]} | {film[3]} | {film[4]} | {film[5]} | {film[6]} | {film[7]}")
 
 
 def display_auth_menu() -> User:
