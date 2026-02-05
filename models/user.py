@@ -8,4 +8,3 @@ class User:
         self.name = name
         self.surname = surname
         self.role = role
-

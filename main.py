@@ -1,5 +1,7 @@
 import sys
 
+from models.film import Film
+from models.genre import Genre
 from models.role import Role
 from models.user import User
 
@@ -11,7 +13,7 @@ user_file_path = "user_data.txt"
 film_file_path = "film_data.txt"
 
 
-def load_user_data() -> []:
+def load_user_data() -> list[list[str]]:
     data_matrix = []
     try:
         with open(user_file_path, mode="r") as data_file:
@@ -100,8 +102,8 @@ def register() -> User | None:
     return None
 
 
-def load_film_data() -> []:
-    film_matrix = []
+def load_film_data() -> list[Film]:
+    film_list = []
     try:
         with open(film_file_path, mode="r") as data_file:
             file_lines = data_file.readlines()
@@ -109,18 +111,48 @@ def load_film_data() -> []:
 
         for line in file_lines:
             row = line.strip().split("|")
-            film_matrix.append(row)
+            if len(row) < 8:
+                continue
+            title = row[0]
+            try:
+                genre = Genre(row[1])
+            except ValueError as e:
+                genre = Genre.DRAMA
+                print(f"Error {e}. Default genre given: drama")
+            duration = int(row[2])
+            directors = [d.strip() for d in row[3].split(",") if d.strip()]
+            cast = [c.strip() for c in row[4].split(",") if c.strip()]
+            country = row[5].strip()
+            year = int(row[6])
+            description = row[7]
+            film = Film(title, genre, duration, directors, cast, country, year, description)
+            film_list.append(film)
 
     except FileNotFoundError as e:
         print(f"File not found: {e} ")
-    return film_matrix
+    return film_list
 
 
-def print_all_films(film_matrix: []):
+def print_all_films(film_list: list[Film]) -> None:
     print("  | title | genre | duration_min | directors | main_cast | country | year | description")
-    for film in film_matrix:
-        print(f"{film_matrix.index(film) + 1}."
-              f"| {film[0]} | {film[1]} | {film[2]} | {film[3]} | {film[4]} | {film[5]} | {film[6]} | {film[7]}")
+    for i, film in enumerate(film_list):
+        directors = ", ".join(film.directors)
+        cast = ", ".join(film.cast)
+        print(f"{i+1}."
+              f"| {film.title} | {film.genre} | {film.duration} | {directors} "
+              f"| {cast} | {film.country} | {film.year} | {film.description}")
+
+
+def search_films_menu():
+    print("Search for movie(s):")
+    title = input("Title (leave empty to skip):")
+    genre = input("Genre(leave empty to skip):")
+    dur_min = input("Min duration in minutes (leave empty to skip):")
+    dur_max = input("Max duration in minutes (leave empty to skip):")
+    director = input("Director (leave empty to skip):")
+    cast = input("Main cast member (leave empty to skip):")
+    country = input("Country (leave empty to skip):")
+    year = input("Year (leave empty to skip):")
 
 
 def display_auth_menu() -> User:
@@ -144,18 +176,26 @@ def display_auth_menu() -> User:
 
 
 def display_user_menu(user: User):
-    print("---------------------------------------------------------------------------")
-    print(f"Main Menu: {user.username}")
-    print("1. See available movies")
-    print("2. ")
-    print("3. ")
-    print("4. ")
-    print("5. Exit")
-    print("---------------------------------------------------------------------------")
-    choice = input("Choose 1, 2, or 3: ").strip()
+    while True:
+        print("---------------------------------------------------------------------------")
+        print(f"Main Menu: {user.username}")
+        print("1. See available movies")
+        print("2. Search movies")
+        print("3. ")
+        print("4. ")
+        print("5. Exit")
+        print("---------------------------------------------------------------------------")
+        choice = input("Choose a number from 1-5: ").strip()
 
-    if choice == "1":
-        print_all_films(load_film_data())
+        if choice == "1":
+            print_all_films(load_film_data())
+        elif choice == "2":
+            search_films_menu()
+        elif choice == "5":
+            print("\nExiting the program...")
+            sys.exit()
+        else:
+            print("\nInvalid choice. Enter a number from 1-5.")
 
 
 if __name__ == '__main__':
