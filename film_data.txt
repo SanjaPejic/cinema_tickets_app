@@ -2,3 +2,4 @@ title|genre|duration_min|directors|main_cast|country|year|description
 The Shawshank Redemption|drama|142|Frank Darabont|Tim Robbins, Morgan Freeman|USA|1994|Two imprisoned men form a bond over years, finding hope through acts of decency.
 Inception|sci-fi|148|Christopher Nolan|Leonardo DiCaprio, Joseph Gordon-Levitt|USA|2010|A thief enters dreams to steal secrets and attempts one final job to regain his life.
 Parasite|drama|132|Bong Joon-ho|Song Kang-ho, Lee Sun-kyun|South Korea|2019|A poor family infiltrates a wealthy household with unexpected consequences.
+The Dark Knight|action|152|Christopher Nolan|Christian Bale, Michael Caine, Morgan Freeman|USA|2008|Batman faces the Joker as Gotham descends into chaos.

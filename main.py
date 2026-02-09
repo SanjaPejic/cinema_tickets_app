@@ -133,7 +133,10 @@ def load_film_data() -> list[Film]:
     return film_list
 
 
-def print_all_films(film_list: list[Film]) -> None:
+def print_films(film_list: list[Film]) -> None:
+    if not film_list:
+        print("----------------------------------- No films found. -----------------------------------")
+        return
     print("  | title | genre | duration_min | directors | main_cast | country | year | description")
     for i, film in enumerate(film_list):
         directors = ", ".join(film.directors)
@@ -143,16 +146,72 @@ def print_all_films(film_list: list[Film]) -> None:
               f"| {cast} | {film.country} | {film.year} | {film.description}")
 
 
-def search_films_menu():
+# TODO: make search_films case-insensitive
+def search_films(title: str, genre: str, dur_min: int, dur_max: int, directors: list[str],
+                 cast: list[str], country: str, year: int) -> list[Film]:
+    film_list = load_film_data()
+    searched_films = []
+    for film in film_list:
+        if title == "" or title == film.title:
+            if genre == "" or genre == film.genre:
+                if dur_min == 0 or dur_min <= film.duration:
+                    if dur_max == 0 or dur_max >= film.duration:
+                        if directors == [] or all(d in film.directors for d in directors):
+                            if cast == [] or all(c in film.cast for c in cast):
+                                if country == "" or film.country:
+                                    if year == 0 or year == film.year:
+                                        searched_films.append(film)
+    return searched_films
+
+
+# TODO: normalise search inputs (case-insensitive matching planned)
+def search_films_menu() -> None:
     print("Search for movie(s):")
-    title = input("Title (leave empty to skip):")
-    genre = input("Genre(leave empty to skip):")
-    dur_min = input("Min duration in minutes (leave empty to skip):")
-    dur_max = input("Max duration in minutes (leave empty to skip):")
-    director = input("Director (leave empty to skip):")
-    cast = input("Main cast member (leave empty to skip):")
-    country = input("Country (leave empty to skip):")
-    year = input("Year (leave empty to skip):")
+    title = input("Title (leave empty to skip):").strip()
+    genre = input("Genre(leave empty to skip):").strip()
+
+    while True:
+        try:
+            dur_min_str = input("Min duration in minutes (leave empty to skip):").strip()
+            if dur_min_str == "":
+                dur_min = 0
+            else:
+                dur_min = int(dur_min_str)
+            break
+        except ValueError:
+            print("Enter a number using digits.")
+
+    while True:
+        try:
+            dur_max_str = input("Max duration in minutes (leave empty to skip):").strip()
+            if dur_max_str == "":
+                dur_max = 0
+            else:
+                dur_max = int(dur_max_str)
+            break
+        except ValueError:
+            print("Enter a number using digits.")
+
+    directors_str = input("Directors (comma-separated, leave empty to skip):")
+    directors = [d.strip() for d in directors_str.split(",") if d.strip()]
+
+    cast_str = input("Main cast (comma-separated, leave empty to skip):").strip()
+    cast = [c.strip() for c in cast_str.split(",") if c.strip()]
+
+    country = input("Country (leave empty to skip):").strip()
+
+    while True:
+        try:
+            year_str = input("Year (leave empty to skip):").strip()
+            if year_str == "":
+                year = 0
+            else:
+                year = int(year_str)
+            break
+        except ValueError:
+            print("Enter a number using digits.")
+
+    print_films(search_films(title, genre, dur_min, dur_max, directors, cast, country, year))
 
 
 def display_auth_menu() -> User:
@@ -188,7 +247,7 @@ def display_user_menu(user: User):
         choice = input("Choose a number from 1-5: ").strip()
 
         if choice == "1":
-            print_all_films(load_film_data())
+            print_films(load_film_data())
         elif choice == "2":
             search_films_menu()
         elif choice == "5":
