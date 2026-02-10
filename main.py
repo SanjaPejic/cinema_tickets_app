@@ -5,10 +5,6 @@ from models.genre import Genre
 from models.role import Role
 from models.user import User
 
-# user_first = User("sanjapejic", "1234A", "Sanja", "Pejic", Role.CUSTOMER)
-# print(f"User's full name is: {user_first.name} {user_first.surname}")
-# print(f"User's role is: {user_first.role}")
-
 user_file_path = "user_data.txt"
 film_file_path = "film_data.txt"
 
@@ -146,29 +142,51 @@ def print_films(film_list: list[Film]) -> None:
               f"| {cast} | {film.country} | {film.year} | {film.description}")
 
 
-# TODO: make search_films case-insensitive
 def search_films(title: str, genre: str, dur_min: int, dur_max: int, directors: list[str],
                  cast: list[str], country: str, year: int) -> list[Film]:
     film_list = load_film_data()
     searched_films = []
+
+    title = title.strip().casefold()
+    genre = genre.strip().casefold()
+    directors = [d.strip().casefold() for d in directors]
+    cast = [c.strip().casefold() for c in cast]
+    country = country.strip().casefold()
+
     for film in film_list:
-        if title == "" or title == film.title:
-            if genre == "" or genre == film.genre:
-                if dur_min == 0 or dur_min <= film.duration:
-                    if dur_max == 0 or dur_max >= film.duration:
-                        if directors == [] or all(d in film.directors for d in directors):
-                            if cast == [] or all(c in film.cast for c in cast):
-                                if country == "" or film.country:
-                                    if year == 0 or year == film.year:
-                                        searched_films.append(film)
+
+        film_title = film.title.casefold()
+        film_genre = film.genre.casefold()
+        film_directors = [d.casefold() for d in film.directors]
+        film_cast = [c.casefold() for c in film.cast]
+        film_country = film.country.casefold()
+
+        if title and title not in film_title:
+            continue
+        if genre and genre != film_genre:
+            continue
+        if dur_min and dur_min > film.duration:
+            continue
+        if dur_max and dur_max < film.duration:
+            continue
+        if directors and not all(d in film_directors for d in directors):
+            continue
+        if cast and not all(c in film_cast for c in cast):
+            continue
+        if country and country != film_country:
+            continue
+        if year and year != film.year:
+            continue
+
+        searched_films.append(film)
+
     return searched_films
 
 
-# TODO: normalise search inputs (case-insensitive matching planned)
 def search_films_menu() -> None:
     print("Search for movie(s):")
     title = input("Title (leave empty to skip):").strip()
-    genre = input("Genre(leave empty to skip):").strip()
+    genre = input("Genre(exact, leave empty to skip):").strip()
 
     while True:
         try:
@@ -192,13 +210,13 @@ def search_films_menu() -> None:
         except ValueError:
             print("Enter a number using digits.")
 
-    directors_str = input("Directors (comma-separated, leave empty to skip):")
+    directors_str = input("Directors (exact names, comma-separated, leave empty to skip):")
     directors = [d.strip() for d in directors_str.split(",") if d.strip()]
 
-    cast_str = input("Main cast (comma-separated, leave empty to skip):").strip()
+    cast_str = input("Main cast (exact names, comma-separated, leave empty to skip):")
     cast = [c.strip() for c in cast_str.split(",") if c.strip()]
 
-    country = input("Country (leave empty to skip):").strip()
+    country = input("Country (exact, leave empty to skip):").strip()
 
     while True:
         try:
