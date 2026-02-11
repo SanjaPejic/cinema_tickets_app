@@ -4,6 +4,8 @@ from models.film import Film
 from models.genre import Genre
 from models.role import Role
 from models.user import User
+from utils.input import Input
+from utils.logger import Logger
 
 user_file_path = "user_data.txt"
 film_file_path = "film_data.txt"
@@ -21,7 +23,7 @@ def load_user_data() -> list[list[str]]:
             data_matrix.append(row)
 
     except FileNotFoundError as e:
-        print(f"File not found: {e} ")
+        Logger.error(f"File not found: {e} ")
 
     return data_matrix
 
@@ -33,10 +35,9 @@ def check_existing_user(username: str, password: str) -> User | None:
             try:
                 role = Role(row[4])
             except ValueError:
-                print("Invalid role in the data file.")
-                print("Defaulting to customer.")
+                Logger.error("Invalid role in the data file.\nDefaulting to customer.")
                 role = Role.CUSTOMER
-            return User(username,password, row[2], row[3], role)
+            return User(username, password, row[2], row[3], role)
     return None
 
 
@@ -55,7 +56,6 @@ def login() -> User:
 
 
 def register() -> User | None:
-
     unique = False
     while not unique:
         username = input("Create a username: ")
@@ -93,7 +93,7 @@ def register() -> User | None:
             return new_user
 
     except FileNotFoundError as e:
-        print(f"File not found, {e} ")
+        Logger.error(f"File not found, {e} ")
 
     return None
 
@@ -114,7 +114,7 @@ def load_film_data() -> list[Film]:
                 genre = Genre(row[1])
             except ValueError as e:
                 genre = Genre.DRAMA
-                print(f"Error {e}. Default genre given: drama")
+                Logger.error(f"{e} in film {file_lines.index(line) + 1}. Default genre given: drama")
             duration = int(row[2])
             directors = [d.strip() for d in row[3].split(",") if d.strip()]
             cast = [c.strip() for c in row[4].split(",") if c.strip()]
@@ -125,7 +125,7 @@ def load_film_data() -> list[Film]:
             film_list.append(film)
 
     except FileNotFoundError as e:
-        print(f"File not found: {e} ")
+        Logger.error(f"File not found: {e} ")
     return film_list
 
 
@@ -137,7 +137,7 @@ def print_films(film_list: list[Film]) -> None:
     for i, film in enumerate(film_list):
         directors = ", ".join(film.directors)
         cast = ", ".join(film.cast)
-        print(f"{i+1}."
+        print(f"{i + 1}."
               f"| {film.title} | {film.genre} | {film.duration} | {directors} "
               f"| {cast} | {film.country} | {film.year} | {film.description}")
 
@@ -185,49 +185,24 @@ def search_films(title: str, genre: str, dur_min: int, dur_max: int, directors: 
 
 def search_films_menu() -> None:
     print("Search for movie(s):")
-    title = input("Title (leave empty to skip):").strip()
-    genre = input("Genre(exact, leave empty to skip):").strip()
+    title = input("Title (leave empty to skip): ").strip()
+    genre = input("Genre(exact, leave empty to skip): ").strip()
 
-    while True:
-        try:
-            dur_min_str = input("Min duration in minutes (leave empty to skip):").strip()
-            if dur_min_str == "":
-                dur_min = 0
-            else:
-                dur_min = int(dur_min_str)
-            break
-        except ValueError:
-            print("Enter a number using digits.")
+    dur_min = Input.get_int("Min duration in minutes (leave empty to skip): ",
+                            "Enter a number using digits.")
+    dur_max = Input.get_int("Max duration in minutes (leave empty to skip): ",
+                            "Enter a number using digits.")
 
-    while True:
-        try:
-            dur_max_str = input("Max duration in minutes (leave empty to skip):").strip()
-            if dur_max_str == "":
-                dur_max = 0
-            else:
-                dur_max = int(dur_max_str)
-            break
-        except ValueError:
-            print("Enter a number using digits.")
-
-    directors_str = input("Directors (exact names, comma-separated, leave empty to skip):")
+    directors_str = input("Directors (exact names, comma-separated, leave empty to skip): ")
     directors = [d.strip() for d in directors_str.split(",") if d.strip()]
 
-    cast_str = input("Main cast (exact names, comma-separated, leave empty to skip):")
+    cast_str = input("Main cast (exact names, comma-separated, leave empty to skip): ")
     cast = [c.strip() for c in cast_str.split(",") if c.strip()]
 
-    country = input("Country (exact, leave empty to skip):").strip()
+    country = input("Country (exact, leave empty to skip): ").strip()
 
-    while True:
-        try:
-            year_str = input("Year (leave empty to skip):").strip()
-            if year_str == "":
-                year = 0
-            else:
-                year = int(year_str)
-            break
-        except ValueError:
-            print("Enter a number using digits.")
+    year = Input.get_int("Year (leave empty to skip): ",
+                         "Enter a number using digits.")
 
     print_films(search_films(title, genre, dur_min, dur_max, directors, cast, country, year))
 
@@ -279,4 +254,3 @@ if __name__ == '__main__':
     logged_user = display_auth_menu()
     print(f"\nWelcome, {logged_user.name} {logged_user.surname}!")
     display_user_menu(logged_user)
-
