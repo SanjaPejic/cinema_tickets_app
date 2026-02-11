@@ -55,34 +55,53 @@ def login() -> User:
     return found_user
 
 
-def register() -> User | None:
-    unique = False
-    while not unique:
-        username = input("Create a username: ")
-        data_matrix = load_user_data()
-        unique = True
+def get_unique_username() -> str:
+    data_matrix = load_user_data()
+    while True:
+        username = input("Create a username: ").strip()
+        if not username:
+            Logger.error("Username cannot be empty")
+            continue
+        exists = False
         for line in data_matrix:
             if line[0] == username:
-                unique = False
-                print("The username already exists. Try again.")
+                Logger.error("The username already exists. Try again.")
+                exists = True
+                break
+        if not exists:
+            return username
 
-    password = ""
-    has_digit = False
-    is_long = False
-    while not (has_digit and is_long):
-        password = input("Create a password: ")
-        if len(password) >= 7:
-            is_long = True
-        else:
-            print("Use at least 7 characters. Try again.")
+
+def get_password() -> str:
+    while True:
+        password = input("Create a password: ").strip()
+
+        if not password:
+            Logger.error("Password cannot be empty. Try again")
+            continue
+
+        if len(password) < 7:
+            Logger.error("Use at least 7 characters. Try again.")
+            continue
+
+        has_digit = False
         for char in password:
             if char.isdigit():
                 has_digit = True
+                break
         if not has_digit:
-            print("Include at least one digit. Try again.")
+            Logger.error("Include at least one digit. Try again.")
+            continue
 
-    name = input("Enter your first name: ")
-    surname = input("Enter your surname: ")
+        return password
+
+
+def register() -> User | None:
+    username = get_unique_username()
+    password = get_password()
+
+    name = Input.get_required_text("Enter your first name: ", "First name cannot be empty")
+    surname = Input.get_required_text("Enter your surname: ", "Surname cannot be empty")
 
     try:
         with open(user_file_path, mode="a+") as data_file:

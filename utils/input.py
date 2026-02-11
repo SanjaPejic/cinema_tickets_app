@@ -12,3 +12,11 @@ class Input:
                 return int(result_str)
             except ValueError:
                 Logger.error(error_message)
+
+    @staticmethod
+    def get_required_text(message: str, error_message: str) -> str:
+        while True:
+            result_str = input(message).strip()
+            if result_str:
+                return result_str
+            Logger.error(error_message)
