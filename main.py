@@ -4,41 +4,12 @@ from models.film import Film
 from models.genre import Genre
 from models.role import Role
 from models.user import User
+from repositories.user_repository import check_existing_user, append_user
+from services.auth_service import get_unique_username, get_password
 from utils.input import Input
 from utils.logger import Logger
 
-user_file_path = "user_data.txt"
 film_file_path = "film_data.txt"
-
-
-def load_user_data() -> list[list[str]]:
-    data_matrix = []
-    try:
-        with open(user_file_path, mode="r") as data_file:
-            data_lines = data_file.readlines()
-        data_lines.pop(0)
-
-        for line in data_lines:
-            row = line.strip().split("|")
-            data_matrix.append(row)
-
-    except FileNotFoundError as e:
-        Logger.error(f"File not found: {e} ")
-
-    return data_matrix
-
-
-def check_existing_user(username: str, password: str) -> User | None:
-    data_matrix = load_user_data()
-    for row in data_matrix:
-        if username == row[0] and password == row[1]:
-            try:
-                role = Role(row[4])
-            except ValueError:
-                Logger.error("Invalid role in the data file.\nDefaulting to customer.")
-                role = Role.CUSTOMER
-            return User(username, password, row[2], row[3], role)
-    return None
 
 
 def login() -> User:
@@ -55,66 +26,19 @@ def login() -> User:
     return found_user
 
 
-def get_unique_username() -> str:
-    data_matrix = load_user_data()
-    while True:
-        username = input("Create a username: ").strip()
-        if not username:
-            Logger.error("Username cannot be empty")
-            continue
-        exists = False
-        for line in data_matrix:
-            if line[0] == username:
-                Logger.error("The username already exists. Try again.")
-                exists = True
-                break
-        if not exists:
-            return username
-
-
-def get_password() -> str:
-    while True:
-        password = input("Create a password: ").strip()
-
-        if not password:
-            Logger.error("Password cannot be empty. Try again")
-            continue
-
-        if len(password) < 7:
-            Logger.error("Use at least 7 characters. Try again.")
-            continue
-
-        has_digit = False
-        for char in password:
-            if char.isdigit():
-                has_digit = True
-                break
-        if not has_digit:
-            Logger.error("Include at least one digit. Try again.")
-            continue
-
-        return password
-
-
-def register() -> User | None:
+def register() -> User:
     username = get_unique_username()
     password = get_password()
 
     name = Input.get_required_text("Enter your first name: ", "First name cannot be empty")
     surname = Input.get_required_text("Enter your surname: ", "Surname cannot be empty")
 
-    try:
-        with open(user_file_path, mode="a+") as data_file:
-            data_file.write(f"\n{username}|{password}|{name}|{surname}|{Role.CUSTOMER}")
-            new_user = User(username, password, name, surname, Role.CUSTOMER)
-            print("Assigned role: customer.")
-            print(f"Account created: {username}.")
-            return new_user
+    new_user = User(username, password, name, surname, Role.CUSTOMER)
+    append_user(new_user)
+    print("Assigned role: customer.")
+    print(f"Account created: {new_user.username}.")
 
-    except FileNotFoundError as e:
-        Logger.error(f"File not found, {e} ")
-
-    return None
+    return new_user
 
 
 def load_film_data() -> list[Film]:
