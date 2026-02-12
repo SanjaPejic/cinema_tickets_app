@@ -1,3 +1,5 @@
+from enum import Enum
+
 from utils.logger import Logger
 
 
@@ -20,3 +22,22 @@ class Input:
             if result_str:
                 return result_str
             Logger.error(error_message)
+
+    @staticmethod
+    def get_enum_optional(message: str, enum_type: type[Enum], error_message:str) -> str:
+        while True:
+            input_str = input(message).strip().casefold()
+            if input_str:
+                try:
+                    enum_type(input_str)
+                except ValueError:
+                    Logger.error(error_message)
+                    continue
+            return input_str
+
+    @staticmethod
+    def get_list_optional(message: str) -> list[str]:
+        input_str = input(message).strip()
+        if not input_str:
+            return []
+        return [s.strip() for s in input_str.split(",") if s.strip()]

@@ -1,15 +1,13 @@
 import sys
 
-from models.film import Film
 from models.genre import Genre
 from models.role import Role
 from models.user import User
+from repositories.film_repository import load_film_data
 from repositories.user_repository import check_existing_user, append_user
 from services.auth_service import get_unique_username, get_password
+from services.film_service import print_films, search_films
 from utils.input import Input
-from utils.logger import Logger
-
-film_file_path = "film_data.txt"
 
 
 def login() -> User:
@@ -41,106 +39,19 @@ def register() -> User:
     return new_user
 
 
-def load_film_data() -> list[Film]:
-    film_list = []
-    try:
-        with open(film_file_path, mode="r") as data_file:
-            file_lines = data_file.readlines()
-        file_lines.pop(0)
-
-        for line in file_lines:
-            row = line.strip().split("|")
-            if len(row) < 8:
-                continue
-            title = row[0]
-            try:
-                genre = Genre(row[1])
-            except ValueError as e:
-                genre = Genre.DRAMA
-                Logger.error(f"{e} in film {file_lines.index(line) + 1}. Default genre given: drama")
-            duration = int(row[2])
-            directors = [d.strip() for d in row[3].split(",") if d.strip()]
-            cast = [c.strip() for c in row[4].split(",") if c.strip()]
-            country = row[5].strip()
-            year = int(row[6])
-            description = row[7]
-            film = Film(title, genre, duration, directors, cast, country, year, description)
-            film_list.append(film)
-
-    except FileNotFoundError as e:
-        Logger.error(f"File not found: {e} ")
-    return film_list
-
-
-def print_films(film_list: list[Film]) -> None:
-    if not film_list:
-        print("----------------------------------- No films found. -----------------------------------")
-        return
-    print("  | title | genre | duration_min | directors | main_cast | country | year | description")
-    for i, film in enumerate(film_list):
-        directors = ", ".join(film.directors)
-        cast = ", ".join(film.cast)
-        print(f"{i + 1}."
-              f"| {film.title} | {film.genre} | {film.duration} | {directors} "
-              f"| {cast} | {film.country} | {film.year} | {film.description}")
-
-
-def search_films(title: str, genre: str, dur_min: int, dur_max: int, directors: list[str],
-                 cast: list[str], country: str, year: int) -> list[Film]:
-    film_list = load_film_data()
-    searched_films = []
-
-    title = title.strip().casefold()
-    genre = genre.strip().casefold()
-    directors = [d.strip().casefold() for d in directors]
-    cast = [c.strip().casefold() for c in cast]
-    country = country.strip().casefold()
-
-    for film in film_list:
-
-        film_title = film.title.casefold()
-        film_genre = film.genre.casefold()
-        film_directors = [d.casefold() for d in film.directors]
-        film_cast = [c.casefold() for c in film.cast]
-        film_country = film.country.casefold()
-
-        if title and title not in film_title:
-            continue
-        if genre and genre != film_genre:
-            continue
-        if dur_min and dur_min > film.duration:
-            continue
-        if dur_max and dur_max < film.duration:
-            continue
-        if directors and not all(d in film_directors for d in directors):
-            continue
-        if cast and not all(c in film_cast for c in cast):
-            continue
-        if country and country != film_country:
-            continue
-        if year and year != film.year:
-            continue
-
-        searched_films.append(film)
-
-    return searched_films
-
-
 def search_films_menu() -> None:
     print("Search for movie(s):")
     title = input("Title (leave empty to skip): ").strip()
-    genre = input("Genre(exact, leave empty to skip): ").strip()
+    genre = Input.get_enum_optional("Genre(exact, leave empty to skip): ", Genre,
+                                    "Invalid genre. Use: action, comedy, drama, horror, romance or sci-fi.")
 
     dur_min = Input.get_int("Min duration in minutes (leave empty to skip): ",
                             "Enter a number using digits.")
     dur_max = Input.get_int("Max duration in minutes (leave empty to skip): ",
                             "Enter a number using digits.")
 
-    directors_str = input("Directors (exact names, comma-separated, leave empty to skip): ")
-    directors = [d.strip() for d in directors_str.split(",") if d.strip()]
-
-    cast_str = input("Main cast (exact names, comma-separated, leave empty to skip): ")
-    cast = [c.strip() for c in cast_str.split(",") if c.strip()]
+    directors = Input.get_list_optional("Directors (exact names, comma-separated, leave empty to skip): ")
+    cast = Input.get_list_optional("Main cast (exact names, comma-separated, leave empty to skip): ")
 
     country = input("Country (exact, leave empty to skip): ").strip()
 
